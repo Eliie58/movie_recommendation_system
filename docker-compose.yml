@@ -1,0 +1,11 @@
+---
+version: '3'
+services:
+  api:
+    build:
+      context:  ./api
+      dockerfile: FastApiDockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - .:/code    
