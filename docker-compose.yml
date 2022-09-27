@@ -9,3 +9,24 @@ services:
       - "80:80"
     volumes:
       - .:/code    
+    environment:
+      - DATABASE_URL=postgresql://fastapi:fastapi@postgres:5432/movies
+    depends_on:
+      - postgres
+    links:
+      - postgres:postgres
+  postgres:
+    image: postgres:14.5-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: fastapi
+      POSTGRES_PASSWORD: fastapi
+      POSTGRES_DB: fastapi
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+
+volumes:
+  postgres:
