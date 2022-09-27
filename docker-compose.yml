@@ -27,6 +27,16 @@ services:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 5432:5432
+  streamlit:
+    build:
+      context:  ./streamlit
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - 8501:8501
+    depends_on:
+      - postgres
 
 volumes:
   postgres:
