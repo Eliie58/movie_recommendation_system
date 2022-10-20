@@ -33,6 +33,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/app
+    environment:
+      - API_URL=http://api:80
+      - BASE_URL=http://localhost:8501
     ports:
       - 8501:8501
     depends_on:

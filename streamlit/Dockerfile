@@ -7,4 +7,4 @@ RUN pip install -r /app/requirements.txt
 EXPOSE 8501
 
 COPY . /app
-CMD ["streamlit", "run", "streamlit/app.py"]
+CMD ["streamlit", "run", "streamlit/Home.py"]
