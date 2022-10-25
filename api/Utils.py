@@ -9,7 +9,7 @@ def readMovies():
         # Skip header
         next(reader, None)
         for row in reader:
-            if re.search('\(\d{4}\)', row[1]):
+            if re.search('\\(\\d{4}\\)', row[1]):
                 movies.append({
                     'id': row[0],
                     'title': " ".join(row[1].strip()[:-6].split(",")[::-1]),

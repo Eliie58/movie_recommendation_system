@@ -1,6 +1,4 @@
-from ast import For
-from sqlite3 import Date
-from sqlalchemy import MetaData, Table, Column, String, Integer, ForeignKey, DateTime
+from sqlalchemy import Table, Column, String, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
@@ -28,8 +26,10 @@ class Database():
 
     def fetch_movies_by_genre(self, genre_id, title):
         self.session = Session(bind=self.connection)
-        return self.session.query(Movie).filter(Movie.title.ilike("%{}%".format(title))).filter(
-            Movie.genres.any(id=genre_id)).order_by(Movie.year.desc()).all()
+        return self.session.query(Movie)\
+            .filter(Movie.title.ilike("%{}%".format(title)))\
+            .filter(Movie.genres.any(id=genre_id))\
+            .order_by(Movie.year.desc()).all()
 
     def fetch_genres(self):
         self.session = Session(bind=self.connection)
@@ -38,9 +38,12 @@ class Database():
     def fetch_predictions(self, id, n):
         self.session = Session(bind=self.connection)
         if id == 0:
-            return self.session.query(Prediction).order_by(Prediction.time_stamp.desc()).limit(10).all()
+            return self.session.query(Prediction)\
+                .order_by(Prediction.time_stamp.desc())\
+                .limit(10).all()
         else:
-            return self.session.query(Prediction).filter(Prediction.id == id).all()
+            return self.session.query(Prediction)\
+                .filter(Prediction.id == id).all()
 
     def store_prediction(self, movie_id, predictions):
         session = Session(bind=self.engine.connect())
@@ -81,7 +84,8 @@ class Movie(Base):
     genres = relationship("Genre", secondary=movie_genre_table, lazy="joined")
 
     def __repr__(self):
-        return "<Movie(id='%s', title='%s', year='%s', genres='%s')>" % (self.id, self.title, self.year, self.genres)
+        return "<Movie(id='%s', title='%s', year='%s', genres='%s')>"\
+            % (self.id, self.title, self.year, self.genres)
 
 
 class Genre(Base):
@@ -91,7 +95,8 @@ class Genre(Base):
     description = Column(String)
 
     def __repr__(self):
-        return "<Genre(id='%s', description='%s')>" % (self.id, self.description)
+        return "<Genre(id='%s', description='%s')>"\
+            % (self.id, self.description)
 
 
 class Prediction(Base):
@@ -105,7 +110,8 @@ class Prediction(Base):
     values = relationship("PredictionValue", lazy="joined")
 
     def __repr__(self):
-        return "<Prediction (id='%s', movie='%s', time_stamp='%s')>" % (self.id, self.movie, self.time_stamp)
+        return "<Prediction (id='%s', movie='%s', time_stamp='%s')>"\
+            % (self.id, self.movie, self.time_stamp)
 
 
 class PredictionValue(Base):
@@ -120,7 +126,8 @@ class PredictionValue(Base):
     movie = relationship("Movie", foreign_keys=[movie_id], lazy="joined")
 
     def __repr__(self):
-        return "<PredictionValue (id='%s', movie='%s')>" % (self.id, self.movie)
+        return "<PredictionValue (id='%s', movie='%s')>"\
+            % (self.id, self.movie)
 
 
 def seed(session):
