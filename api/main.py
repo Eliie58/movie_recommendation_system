@@ -1,5 +1,7 @@
+from typing import List
 from fastapi import FastAPI
-from .database import Database
+from pydantic import BaseModel
+from .database import Database, Prediction
 import random
 
 app = FastAPI()
@@ -35,3 +37,14 @@ def single_prediction(movie_id: int):
     movies = db.fetch_movies()
     predictions = random.sample(movies, 4)
     return db.store_prediction(movie_id, predictions)
+
+
+class MovieIdList(BaseModel):
+    ids: List[int]
+
+
+@app.post("/upload/")
+def upload(movies_id: MovieIdList):
+    db: Database = Database.instance()
+    movie_list = [single_prediction(movie_id) for movie_id in movies_id.ids]
+    return movie_list
