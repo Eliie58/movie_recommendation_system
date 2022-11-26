@@ -1,9 +1,14 @@
-import streamlit as st
-import requests
+"""This module is the Home page for streamlit web application."""
+
 import json
-from utils.Utils import print_movie_tiles
-import webbrowser
 import os
+import webbrowser
+import logging
+
+import requests
+import streamlit as st
+
+from utils import print_movie_tiles
 
 genres = {}
 api_url = os.environ["API_URL"]
@@ -17,6 +22,7 @@ st.set_page_config(
 
 
 def main():
+    """Main function to display the Home"""
     hide_img_fs = '''
     <style>
         button[title="View fullscreen"] {
@@ -28,8 +34,8 @@ def main():
     </style>
     '''
     st.markdown(hide_img_fs, unsafe_allow_html=True)
-    st.write('## Wondering what new movies to watch?')
-    st.write('#### Pick a movie you''ve already watched, and i''ll help you')
+    st.write("## Wondering what new movies to watch?")
+    st.write("#### Pick a movie you''ve already watched, and i''ll help you")
     cols = st.columns([2, 1])
     with cols[0]:
         genre = st.selectbox("Select the movie genre", options=get_genres(),
@@ -43,8 +49,10 @@ def main():
 
 
 def print_movies(genre, movie_name):
+    """Function to fetch and print movies."""
     movies = json.loads(requests.get(
-        f'{api_url}/movies?genre_id={genre}&title={movie_name}').text)
+        f'{api_url}/movies?genre_id={genre}&title={movie_name}',
+        timeout=10).text)
     if len(movies) == 0:
         st.write(
             f'### No {format_func(genre)} movies found with titles similar'
@@ -54,25 +62,32 @@ def print_movies(genre, movie_name):
 
 
 def predict_movies(movie_id):
+    """
+    Function to predict similar movies,
+    and open a new tab with the results.
+    """
     pred_id = json.loads(requests.get(
-        f'{api_url}/single-prediction?movie_id={movie_id}').text)
+        f'{api_url}/single-prediction?movie_id={movie_id}', timeout=10).text)
     webbrowser.open_new_tab(f'{base_url}/History?id={pred_id}')
 
 
 def get_genres():
+    """Function to get all genre ids."""
     genre_ids = []
-    genre_list = json.loads(requests.get(f'{api_url}/genres').text)
+    genre_list = json.loads(requests.get(f'{api_url}/genres', timeout=10).text)
     for genre in genre_list:
-        id = genre["id"]
+        genre_id = genre["id"]
         description = genre["description"]
-        genre_ids.append(id)
-        genres[id] = description
+        genre_ids.append(genre_id)
+        genres[genre_id] = description
     return genre_ids
 
 
 def format_func(option):
+    """Function to get Genre Name from Id."""
     return genres[option]
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     main()

@@ -1,8 +1,14 @@
-import streamlit as st
-import requests
+"""
+This module is streamlit page for showing Prediction History
+"""
+
 import json
-from utils.Utils import print_movie_tiles
 import os
+
+import requests
+import streamlit as st
+
+from utils import print_movie_tiles
 
 api_url = os.environ["API_URL"]
 
@@ -14,6 +20,10 @@ st.set_page_config(
 
 
 def main():
+    """
+    This function is used to create the structure of the webpage.
+    """
+
     hide_img_fs = '''
     <style>
         button[title="View fullscreen"] {
@@ -29,29 +39,49 @@ def main():
     if 'id' in params:
         st.write('## Your movie suggestions are:')
         st.sidebar.markdown("# Suggestions 📖")
-        print_history(id=params['id'])
+        print_history(prediction_id=params['id'])
     else:
         st.write('## Some Previous movie Recommendations')
         st.sidebar.markdown("# History 📖")
         print_history()
 
 
-def print_history(id=None):
+def print_history(prediction_id=None):
+    """
+    Function to print the movie preidction history.
+
+    Parameters
+    ----------
+    prediction_id: int, optional
+        The id of the prediction to print
+    """
+
     cols = st.columns([1, 4])
     with cols[0]:
         st.write('### The User Picked')
     with cols[1]:
         st.write('### We suggested')
-    if id is None:
+    if prediction_id is None:
         history = json.loads(requests.get(
-            f'{api_url}/history').text)
+            f'{api_url}/history', timeout=10).text)
     else:
         history = json.loads(requests.get(
-            f'{api_url}/history?id={id[0]}').text)
+            f'{api_url}/history?prediction_id={prediction_id[0]}',
+            timeout=10).text)
     for movie in history:
-        tiles = [movie["movie"]] + [suggestion["movie"]
-                                    for suggestion in movie["values"]]
+        tiles = [movie["movie"]] + sorted([build_movie(suggestion)
+                                           for suggestion in movie["values"]],
+                                          key=lambda x: x['score'])[::-1]
         print_movie_tiles(tiles, columns=5, history=False)
+
+
+def build_movie(suggestion):
+    """
+    Function to bundle movie with score.
+    """
+    movie = suggestion["movie"]
+    movie["score"] = suggestion["score"]
+    return movie
 
 
 if __name__ == '__main__':

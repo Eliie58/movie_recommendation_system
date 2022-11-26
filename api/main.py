@@ -2,7 +2,6 @@
 Module for FastAPI endpoints
 """
 
-import random
 from typing import List
 import logging
 
@@ -10,9 +9,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from .database import Database, Prediction, Movie, Genre
+from .inference import get_neighbors, load_model
+
 
 app = FastAPI()
-db = Database.instance()
+DB = Database.instance()
+model = load_model('/models/model.joblib')
 logging.basicConfig(level=logging.INFO)
 
 
@@ -21,7 +23,7 @@ def get_genres() -> List[Genre]:
     """
     Get all movie genres endpoint.
     """
-    return db.fetch_genres()
+    return DB.fetch_genres()
 
 
 @app.get("/movies")
@@ -43,7 +45,7 @@ def get_movies_by_genre_and_title(genre_id: int, title: str) -> List[Movie]:
     """
     logging.info('Getting movies for genre %s and title like %s',
                  genre_id, title)
-    return db.fetch_movies_by_genre_and_title(genre_id, title)
+    return DB.fetch_movies_by_genre_and_title(genre_id, title)
 
 
 @app.get("/history")
@@ -66,7 +68,7 @@ def get_history(prediction_id: int = 0,
     list
         List of predictions
     """
-    return db.fetch_predictions(prediction_id, number_of_movies)
+    return DB.fetch_predictions(prediction_id, number_of_movies)
 
 
 @app.get("/single-prediction")
@@ -84,12 +86,12 @@ def single_prediction(movie_id: int) -> int:
     int
         Prediction Id
     """
-    movies = db.fetch_movies()
-    predictions = random.sample(movies, 4)
-    return db.store_prediction(movie_id, predictions)
+    predictions = get_neighbors([movie_id], model=model, k=4)[0]
+    return DB.store_prediction(movie_id, predictions)
 
 
 class MovieIdList(BaseModel):
+    """Movie Id Pydantic Model"""
     ids: List[int]
 
 
@@ -108,5 +110,6 @@ def upload(movies_id: MovieIdList) -> List[int]:
     List
         Prediction Ids
     """
-    prediction_ids = [single_prediction(movie_id) for movie_id in movies_id.ids]
+    prediction_ids = [single_prediction(movie_id)
+                      for movie_id in movies_id.ids]
     return prediction_ids
