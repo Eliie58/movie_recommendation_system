@@ -6,7 +6,8 @@ import os
 import logging
 
 import sqlalchemy as db
-from sqlalchemy import Table, Column, String, Integer, ForeignKey, DateTime
+from sqlalchemy import Table, Column, String, Integer, \
+    ForeignKey, DateTime, Float
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
@@ -35,18 +36,6 @@ class Database():
             seed(Session(bind=self.connection))
         except Exception as exc:
             logging.exception(exc)
-
-    def fetch_movies(self):
-        """
-        Fetch all Movies.
-
-        Returns
-        -------
-        list
-            List of all movies
-        """
-        session = Session(bind=self.connection)
-        return session.query(Movie).all()
 
     def fetch_movies_by_genre_and_title(self, genre_id, title):
         """
@@ -117,7 +106,8 @@ class Database():
         movie_id : int
             The id of the movie used for prediction.
         predictions : list
-            List of the ids of the movies that are predicted as similar.
+            List of the ids and similarity score of the movies that are
+            predicted as similar.
 
         Returns
         -------
@@ -128,9 +118,9 @@ class Database():
         prediction = Prediction(movie_id=movie_id)
         session.add(prediction)
         session.commit()
-        for pred in predictions:
+        for (movie_id, score) in predictions:
             pred_value = PredictionValue(
-                movie_id=pred.id, prediction_id=prediction.id)
+                movie_id=movie_id, score=score, prediction_id=prediction.id)
             session.add(pred_value)
         session.commit()
         return prediction.id
@@ -204,13 +194,15 @@ class PredictionValue(Base):
     id = Column(Integer, primary_key=True)
     prediction_id = Column(Integer, ForeignKey("prediction.id"))
     movie_id = Column(Integer, ForeignKey("movie.id"))
+    score = Column(Float)
 
     prediction = relationship("Prediction", foreign_keys=[
                               prediction_id], lazy="joined")
     movie = relationship("Movie", foreign_keys=[movie_id], lazy="joined")
 
     def __repr__(self):
-        return "<PredictionValue (id='{self.id}', movie='{self.movie}')>"
+        return "<PredictionValue (id='{self.id}', movie='{self.movie}',\
+             score='{self.score}')>"
 
 
 def seed(session):

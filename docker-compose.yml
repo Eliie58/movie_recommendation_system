@@ -3,16 +3,17 @@ version: '3'
 services:
   api:
     build:
-      context:  ./api
+      context: ./api
       dockerfile: FastApiDockerfile
     ports:
       - "80:80"
     volumes:
-      - .:/code    
+      - models:/models    
     environment:
       - DATABASE_URL=postgresql://fastapi:fastapi@postgres:5432/movies
     depends_on:
       - postgres
+      - model
     links:
       - postgres:postgres
   postgres:
@@ -40,6 +41,17 @@ services:
       - 8501:8501
     depends_on:
       - postgres
+  model:
+    build:
+      context: ./model
+      dockerfile: Dockerfile
+    volumes:
+      - models:/model/models
+      - mlruns:/tmp
+    ports:
+      - 5000:5000
 
 volumes:
   postgres:
+  mlruns:
+  models:

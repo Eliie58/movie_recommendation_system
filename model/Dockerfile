@@ -9,7 +9,9 @@ EXPOSE 5000
 COPY . /model
 
 RUN chmod 777 /model/start.sh
-RUN mkdir /model/models
+
+WORKDIR /model/models
+WORKDIR /model
 
 CMD /model/start.sh
 
