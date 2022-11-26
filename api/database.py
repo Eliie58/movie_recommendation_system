@@ -1,48 +1,129 @@
-from ast import For
-from sqlite3 import Date
-from sqlalchemy import MetaData, Table, Column, String, Integer, ForeignKey, DateTime
+"""
+Module for SqlAlchemy related classes
+"""
+
+import os
+import logging
+
+import sqlalchemy as db
+from sqlalchemy import Table, Column, String, Integer, ForeignKey, DateTime
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
-import sqlalchemy as db
-import os
-from .Utils import readMovies
 
-db_instance = None
+from .Utils import read_movies
+
+logging.basicConfig(level=logging.INFO)
 
 
 class Database():
+    """
+    Database functionality wrapper. Use this class
+    for all interactions with the database.
+    Always use the instance method.
+
+    Example usage:
+    db = Database.instance()
+    """
     engine = db.create_engine(os.environ["DATABASE_URL"])
+    db_instance = None
 
     def __init__(self):
         self.connection = self.engine.connect()
         print("DB Instance created")
         try:
             seed(Session(bind=self.connection))
-        except Exception as e:
-            print(f'Error {e}')
+        except Exception as exc:
+            logging.exception(exc)
 
     def fetch_movies(self):
-        self.session = Session(bind=self.connection)
-        return self.session.query(Movie).all()
+        """
+        Fetch all Movies.
 
-    def fetch_movies_by_genre(self, genre_id, title):
-        self.session = Session(bind=self.connection)
-        return self.session.query(Movie).filter(Movie.title.ilike("%{}%".format(title))).filter(
-            Movie.genres.any(id=genre_id)).order_by(Movie.year.desc()).all()
+        Returns
+        -------
+        list
+            List of all movies
+        """
+        session = Session(bind=self.connection)
+        return session.query(Movie).all()
+
+    def fetch_movies_by_genre_and_title(self, genre_id, title):
+        """
+        Fetch movies filterd by genre id and title.
+
+        Parameters
+        ----------
+        genre_id : int
+            Movie genre id, used to filter the returned movies.
+        title : str
+            Movie title, used to filter the returned movies.
+
+        Returns
+        -------
+        list
+            List of movies
+        """
+        session = Session(bind=self.connection)
+        return session.query(Movie)\
+            .filter(Movie.title.ilike(f"%{title}%"))\
+            .filter(Movie.genres.any(id=genre_id))\
+            .order_by(Movie.year.desc()).all()
 
     def fetch_genres(self):
-        self.session = Session(bind=self.connection)
-        return self.session.query(Genre).all()
+        """
+        Fetch movie genres.
 
-    def fetch_predictions(self, id, n):
-        self.session = Session(bind=self.connection)
-        if id == 0:
-            return self.session.query(Prediction).order_by(Prediction.time_stamp.desc()).limit(10).all()
+        Returns
+        -------
+        list
+            List of genres
+        """
+        session = Session(bind=self.connection)
+        return session.query(Genre).all()
+
+    def fetch_predictions(self, prediction_id, number_of_movies):
+        """
+        Fetch predictions.
+
+        Parameters
+        ----------
+        prediction_id : int
+            Prediction Id. If 0, return "number_of_movies"
+            previous predictions.
+        number_of_movies : int
+            Number of predictions to be returned.
+
+        Returns
+        -------
+        list
+            List of Predictions.
+        """
+        session = Session(bind=self.connection)
+        if prediction_id == 0:
+            return session.query(Prediction)\
+                .order_by(Prediction.time_stamp.desc())\
+                .limit(number_of_movies).all()
         else:
-            return self.session.query(Prediction).filter(Prediction.id == id).all()
+            return session.query(Prediction)\
+                .filter(Prediction.id == prediction_id).all()
 
     def store_prediction(self, movie_id, predictions):
+        """
+        Store predictions.
+
+        Parameters
+        ----------
+        movie_id : int
+            The id of the movie used for prediction.
+        predictions : list
+            List of the ids of the movies that are predicted as similar.
+
+        Returns
+        -------
+        int
+            Prediction Id stored in the database.
+        """
         session = Session(bind=self.engine.connect())
         prediction = Prediction(movie_id=movie_id)
         session.add(prediction)
@@ -56,10 +137,17 @@ class Database():
 
     @staticmethod
     def instance():
-        global db_instance
-        if db_instance is None:
-            db_instance = Database()
-        return db_instance
+        """
+        Static method to get an instance of the Database.
+
+        Returns
+        -------
+        Database
+            Instance of the Database
+        """
+        if Database.db_instance is None:
+            Database.db_instance = Database()
+        return Database.db_instance
 
 
 Base = declarative_base()
@@ -81,7 +169,8 @@ class Movie(Base):
     genres = relationship("Genre", secondary=movie_genre_table, lazy="joined")
 
     def __repr__(self):
-        return "<Movie(id='%s', title='%s', year='%s', genres='%s')>" % (self.id, self.title, self.year, self.genres)
+        return f"<Movie(id='{self.id}', title='{self.title}',\
+            year='{self.year}', genres='{self.genres}')>"
 
 
 class Genre(Base):
@@ -91,7 +180,7 @@ class Genre(Base):
     description = Column(String)
 
     def __repr__(self):
-        return "<Genre(id='%s', description='%s')>" % (self.id, self.description)
+        return "<Genre(id='{self.id}', description='{self.description}')>"
 
 
 class Prediction(Base):
@@ -105,7 +194,8 @@ class Prediction(Base):
     values = relationship("PredictionValue", lazy="joined")
 
     def __repr__(self):
-        return "<Prediction (id='%s', movie='%s', time_stamp='%s')>" % (self.id, self.movie, self.time_stamp)
+        return "<Prediction (id='{self.id}', movie='{self.movie}',\
+             time_stamp='{self.time_stamp}')>"
 
 
 class PredictionValue(Base):
@@ -120,19 +210,35 @@ class PredictionValue(Base):
     movie = relationship("Movie", foreign_keys=[movie_id], lazy="joined")
 
     def __repr__(self):
-        return "<PredictionValue (id='%s', movie='%s')>" % (self.id, self.movie)
+        return "<PredictionValue (id='{self.id}', movie='{self.movie}')>"
 
 
 def seed(session):
+    """
+    Method to check if database is already seeded.
+
+    Parameters
+    ----------
+    session : Session
+        SqlAlchemy session to be used for seeding the database.
+    """
     if session.query(Movie).count() > 0:
-        print('Movies table already seeded.')
+        logging.info('Movies table already seeded.')
         return
     seed_movies(session)
 
 
 def seed_movies(session):
+    """
+    Mathod to seed the database with movies.
+
+    Parameters
+    ----------
+    session : Session
+        SqlAlchemy session to be used for seeding the database.
+    """
     genres = {}
-    movies = readMovies()
+    movies = read_movies()
     for index, movie in enumerate(movies):
         movie_genres = []
         for genre in movie['genres']:

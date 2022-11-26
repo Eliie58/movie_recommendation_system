@@ -1,14 +1,11 @@
-from gc import callbacks
 import streamlit as st
 import requests
 import json
-from PIL import Image
 from utils.Utils import print_movie_tiles
 import webbrowser
 import os
 
 genres = {}
-default_image = "https://st3.depositphotos.com/1322515/35964/v/450/depositphotos_359648638-stock-illustration-image-available-icon.jpg"
 api_url = os.environ["API_URL"]
 base_url = os.environ["BASE_URL"]
 
@@ -50,14 +47,15 @@ def print_movies(genre, movie_name):
         f'{api_url}/movies?genre_id={genre}&title={movie_name}').text)
     if len(movies) == 0:
         st.write(
-            f'### No {format_func(genre)} movies found with titles similar to {movie_name}')
+            f'### No {format_func(genre)} movies found with titles similar'
+            ' to {movie_name}')
         return
     print_movie_tiles(movies, callback=predict_movies)
 
 
 def predict_movies(movie_id):
     pred_id = json.loads(requests.get(
-        f'{{api_url}}/single-prediction?movie_id={movie_id}').text)
+        f'{api_url}/single-prediction?movie_id={movie_id}').text)
     webbrowser.open_new_tab(f'{base_url}/History?id={pred_id}')
 
 
