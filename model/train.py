@@ -99,6 +99,7 @@ def train_model(dataset: Dataset,
                                  "RMSE", "MAE"], cv=2)
         mlflow.log_metrics({key: mean(value)
                            for key, value in metrics.items()})
+        mlflow.log_params(model.sim_options)
         mlflow.sklearn.log_model(model, "model")
         logging.info("Model saved in run %s",
                      mlflow.active_run().info.run_uuid)
@@ -121,7 +122,6 @@ def setup_mlflow(
     """
     mlflow.set_tracking_uri(tracking_uri)
     experiment = mlflow.get_experiment_by_name(experiment_name)
-    logging.info(experiment)
     if experiment is None:
         mlflow.create_experiment(experiment_name)
     mlflow.set_experiment(experiment_name)
