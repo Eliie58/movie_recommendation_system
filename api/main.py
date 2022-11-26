@@ -1,11 +1,13 @@
 """
 Module for FastAPI endpoints
 """
+
 import random
 from typing import List
 import logging
 
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 from .database import Database, Prediction, Movie, Genre
 
@@ -85,3 +87,26 @@ def single_prediction(movie_id: int) -> int:
     movies = db.fetch_movies()
     predictions = random.sample(movies, 4)
     return db.store_prediction(movie_id, predictions)
+
+
+class MovieIdList(BaseModel):
+    ids: List[int]
+
+
+@app.post("/upload/")
+def upload(movies_id: MovieIdList) -> List[int]:
+    """
+    Get predictions for a multiple movies.
+
+    Parameters
+    ----------
+    movies_id : MovieIdList
+        Movie ids, used to find similar movies.
+
+    Returns
+    -------
+    List
+        Prediction Ids
+    """
+    prediction_ids = [single_prediction(movie_id) for movie_id in movies_id.ids]
+    return prediction_ids
