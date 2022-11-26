@@ -86,7 +86,7 @@ export DATABASE_URL=postgresql://fastapi:fastapi@localhost:5432/movies
 - Start the api
 
 ```
-uvicorn api.main:app --host 127.0.0.1 --port 8080
+./start.sh
 ```
 
 - To test the api, you can go to `http://localhost:8080/genres`
