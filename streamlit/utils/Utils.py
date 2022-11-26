@@ -3,12 +3,14 @@ import requests
 import json
 
 genres = {}
-default_image = "https://st3.depositphotos.com/1322515/35964/v/450/depositphotos_359648638-stock-illustration-image-available-icon.jpg"
+default_image = "https://st3.depositphotos.com/1322515/35964/v/450/"\
+    "depositphotos_359648638-stock-illustration-image-available-icon.jpg"
 
 
 def get_movie_image(movie):
-    movie_details = json.loads(requests.get(
-        f'http://www.omdbapi.com/?t={movie["title"]}&year={movie["year"]}&apikey=c9eb1bb2').text)
+    url = f'http://www.omdbapi.com/?t={movie["title"]}&year={movie["year"]}'\
+        '&apikey=c9eb1bb2'
+    movie_details = json.loads(requests.get(url).text)
     if 'Poster' in movie_details:
         return movie_details['Poster']
     else:

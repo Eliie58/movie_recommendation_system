@@ -3,12 +3,14 @@ import requests
 import json
 
 genres = {}
-default_image = "https://st3.depositphotos.com/1322515/35964/v/450/depositphotos_359648638-stock-illustration-image-available-icon.jpg"
+default_image = "https://st3.depositphotos.com/1322515/35964/v/450/"\
+    "depositphotos_359648638-stock-illustration-image-available-icon.jpg"
 
 
 def get_movie_image(movie):
-    movie_details = json.loads(requests.get(
-        f'http://www.omdbapi.com/?t={movie["title"]}&year={movie["year"]}&apikey=1fea6618').text)
+    url = f'http://www.omdbapi.com/?t={movie["title"]}&year={movie["year"]}'\
+        '&apikey=c9eb1bb2'
+    movie_details = json.loads(requests.get(url).text)
     if 'Poster' in movie_details:
         return movie_details['Poster']
     else:
@@ -46,5 +48,7 @@ def print_movie_tiles(movies, callback=None, columns=4, header=True):
                 container.image(default_image)
                 container.write('##### Genres')
                 container.write(get_movie_genres(movie))
+        if button:
+            callback(movie['id'])
         if index > 20:
             return
