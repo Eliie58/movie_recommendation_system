@@ -4,6 +4,7 @@ Module for SqlAlchemy related classes
 
 import os
 import logging
+from math import isnan
 
 import sqlalchemy as db
 from sqlalchemy import Table, Column, String, Integer, \
@@ -93,9 +94,8 @@ class Database():
             return session.query(Prediction)\
                 .order_by(Prediction.time_stamp.desc())\
                 .limit(number_of_movies).all()
-        else:
-            return session.query(Prediction)\
-                .filter(Prediction.id == prediction_id).all()
+        return session.query(Prediction)\
+            .filter(Prediction.id == prediction_id).all()
 
     def store_prediction(self, movie_id, predictions):
         """
@@ -111,19 +111,21 @@ class Database():
 
         Returns
         -------
-        int
-            Prediction Id stored in the database.
+        Prediction
+            The Prediction stored in the database.
         """
         session = Session(bind=self.engine.connect())
         prediction = Prediction(movie_id=movie_id)
         session.add(prediction)
         session.commit()
-        for (movie_id, score) in predictions:
+        for (predicted_movie_id, score) in predictions:
+            if isnan(score):
+                score = 0
             pred_value = PredictionValue(
-                movie_id=movie_id, score=score, prediction_id=prediction.id)
+                movie_id=predicted_movie_id, score=score, prediction_id=prediction.id)
             session.add(pred_value)
         session.commit()
-        return prediction.id
+        return self.fetch_predictions(prediction.id, number_of_movies=1)[0]
 
     @staticmethod
     def instance():

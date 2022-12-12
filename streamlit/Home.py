@@ -66,9 +66,9 @@ def predict_movies(movie_id):
     Function to predict similar movies,
     and open a new tab with the results.
     """
-    pred_id = json.loads(requests.get(
+    prediction = json.loads(requests.get(
         f'{api_url}/single-prediction?movie_id={movie_id}', timeout=10).text)
-    webbrowser.open_new_tab(f'{base_url}/History?id={pred_id}')
+    webbrowser.open_new_tab(f'{base_url}/History?id={prediction["id"]}')
 
 
 def get_genres():
