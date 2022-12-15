@@ -7,9 +7,6 @@ from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
 
 
-
-
-
 @dag(
     dag_id='injestion_job',
     description='Ingest data from a file',
@@ -33,8 +30,8 @@ def ingest_data():
         logging.info(f'Ingesting data in {filepath}')
         data_to_ingest_df.to_csv(filepath, index=False)
 
-
     data_to_ingest = data_file()
     save_data(data_to_ingest)
+
 
 ingest_data()
