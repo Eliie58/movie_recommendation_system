@@ -1,0 +1,5 @@
+apache-airflow==2.5.0 --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.5.0/constraints-3.10.txt"
+apache-airflow[statsd]==2.5.0
+pandas==1.5.2
+great-expectations==0.15.41
+airflow-provider-great-expectations==0.2.2

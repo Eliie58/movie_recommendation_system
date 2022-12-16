@@ -4,11 +4,33 @@ Movie Recommendation System, built using AI
 
 ## Components
 
-This system contains three main services:
+This system contains 6 main services:
 
 - Database [PostgreSQL]("https://www.postgresql.org/")
 - Api [FastAPI]("https://fastapi.tiangolo.com/")
 - Web Interface [Streamlit]("https://streamlit.io/")
+- Prediction model [surpriselib]("https://surpriselib.com/")
+- Job scheduling [Apache Airflow](https://airflow.apache.org/)
+- Monitoring Dashboard [Grafana](https://grafana.com/)
+
+## System Design
+
+Ever felt not sure regarding which movie to watch next?<br>
+This project aims to solve this problem.<br>
+
+- The streamlit frontend shows the users movies, that can be filtered by genre and movie name. The user will pick a movie, and request others similar to it.
+- The frontend will send http request to the fastapi backend, with the movie id. In the backend, we will use a pretrained model for inference. The predicted information will be stored in the database, and the user will be directed to a page to see the prediction results.
+- We have a grafana dashboard, for monitoring system performances as well.
+- The frontend also supports Batch predictions, where users can upload a file with a list of movie ids.
+
+The system also supports B2B batch predictions, where business will upload their batch predictions to a shared folder, and we will output the predictions to a different folder.
+
+- Job scheduling. We have 3 scheduled jobs:
+  1. B2B Simulation: We simulate the B2B requests with randomly generated request files.
+  2. Data Ingestion: We validate the input files using [great expectations](https://greatexpectations.io/), and move the valid files to the Prediction folder.
+  3. Prediction Job: Read all files in the prediction job, and for each, call api batch prediction endpoint, and write the result to output folder.
+
+![System Design](System%20Design.svg)
 
 ## Run
 
@@ -124,6 +146,60 @@ streamlit run streamlit/Home.py
 ```
 
 - Navigate to `http://localhost:8501`
+
+#### Model
+
+Steps for training and using the prediction model are in the model [README.MD](model/README.md)
+
+#### Job Scheduling
+
+To run the job scheduler, follow these steps:
+
+- Download the code
+- Navigate to the airflow directory of the project
+- Create and activate a new conda environment
+
+```
+conda create --name airflow
+conda activate airflow
+```
+
+- Install the requirements
+
+```
+pip install -r requirements.txt
+```
+
+- Set the environemnt variable. For linux
+
+```
+export API_URL=http://localhost:8080
+```
+
+- Create the data folders
+
+```
+mkdir data/b2b_input
+mkdir data/validation_input
+mkdir data/prediction_input
+mkdir data/rejected
+mkdir data/output
+```
+
+- Start the scheduler
+
+```
+./start.sh
+```
+
+- To view the airflow web interface, you can go to `http://localhost:9091`
+
+#### Grafana
+
+Follow the steps to setup grafana from the official sources `https://grafana.com/docs/grafana/latest/setup-grafana/installation/`.<br>
+After installing and running the local grafana instance, create a new postgres datasource, and dashboards to visualize sysem performance.
+Example dashboard:
+![Example dashboard](Example_dashboard.png)
 
 ### Useful command
 
