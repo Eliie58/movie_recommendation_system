@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 """This module is the Home page for streamlit web application."""
 
 import json
@@ -6,9 +7,9 @@ import webbrowser
 import logging
 
 import requests
+from utils import print_movie_tiles
 import streamlit as st
 
-from utils import print_movie_tiles
 
 genres = {}
 api_url = os.environ["API_URL"]

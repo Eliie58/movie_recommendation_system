@@ -6,8 +6,8 @@ import logging
 from datetime import timedelta
 import os
 from typing import List
-import requests
 import json
+import requests
 
 import pandas as pd
 from airflow.decorators import dag, task

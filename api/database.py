@@ -1,3 +1,4 @@
+# pylint: disable=too-few-public-methods
 """
 Module for SqlAlchemy related classes
 """
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declarative_base
 
-from .Utils import read_movies
+from .utils import read_movies
 
 logging.basicConfig(level=logging.INFO)
 
@@ -34,10 +35,7 @@ class Database():
     def __init__(self):
         self.connection = self.engine.connect()
         print("DB Instance created")
-        try:
-            seed(Session(bind=self.connection))
-        except Exception as exc:
-            logging.exception(exc)
+        seed(Session(bind=self.connection))
 
     def fetch_movies_by_genre_and_title(self, genre_id, title):
         """
@@ -124,8 +122,9 @@ class Database():
             for (predicted_movie_id, score) in predictions:
                 if isnan(score):
                     score = 0
-                pred_value = PredictionValue(
-                    movie_id=predicted_movie_id, score=score, prediction_id=prediction.id)
+                pred_value = PredictionValue(movie_id=predicted_movie_id,
+                                             score=score,
+                                             prediction_id=prediction.id)
                 session.add(pred_value)
             session.commit()
         finally:
