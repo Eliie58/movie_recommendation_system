@@ -4,11 +4,13 @@ Movie Recommendation System, built using AI
 
 ## Components
 
-This system contains three main services:
+This system contains 6 main services:
 
 - Database [PostgreSQL]("https://www.postgresql.org/")
 - Api [FastAPI]("https://fastapi.tiangolo.com/")
 - Web Interface [Streamlit]("https://streamlit.io/")
+- Prediction model [surpriselib]("https://surpriselib.com/")
+- Job scheduling [Apache Airflow](https://airflow.apache.org/)
 
 ## Run
 
@@ -124,6 +126,52 @@ streamlit run streamlit/Home.py
 ```
 
 - Navigate to `http://localhost:8501`
+
+#### Model
+
+Steps for training and using the prediction model are in the model [README.MD](model/README.md)
+
+#### Job Scheduling
+
+In order to automate the job scheduling we are using airflow.
+We have 2 scheduled jobs:
+
+- Data Ingestion:<br>
+  Copy B2B incoming files from b2b-input folder, to prediction-pipeline folder.
+- Batch Prediction:<br>
+  Use [great expectations](https://greatexpectations.io/) to validate b2b data quality, and discard any invalid inputs, after sending notifications.<br>
+  Calling the batch prediction api endpoint to get the prediction, and output the results under b2b-output folder
+
+To run the job scheduler, follow these steps:
+
+- Download the code
+- Navigate to the airflow directory of the project
+- Create and activate a new conda environment
+
+```
+conda create --name airflow
+conda activate airflow
+```
+
+- Install the requirements
+
+```
+pip install -r requirements.txt
+```
+
+- Set the environemnt variable. For linux
+
+```
+export API_URL=http://localhost:8080
+```
+
+- Start the scheduler
+
+```
+./start.sh
+```
+
+- To view the airflow web interface, you can go to `http://localhost:9091`
 
 ### Useful command
 
