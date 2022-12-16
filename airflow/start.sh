@@ -5,7 +5,7 @@ export AIRFLOW__CORE__ENABLE_XCOM_PICKLING=True
 export AIRFLOW__CORE__LOAD_EXAMPLES=False
 
 export AIRFLOW__METRICS__STATSD_ON=True
-export AIRFLOW__METRICS__STATSD_HOST=localhost
+export AIRFLOW__METRICS__STATSD_HOST=statsd-exporter
 export AIRFLOW__METRICS__STATSD_PORT=8125
 export AIRFLOW__METRICS__STATSD_PREFIX=airflow
 export B2B_FOLDER=data/b2b_input
@@ -13,7 +13,7 @@ export VALIDATION_FOLDER=data/validation_input
 export PREDICTION_FOLDER=data/prediction_input
 export REJECT_FOLDER=data/rejected
 export OUTPUT_FOLDER=data/output
-export API_URL=http://localhost:80
+export API_URL=http://api:80
 
 airflow db init
 airflow users create \

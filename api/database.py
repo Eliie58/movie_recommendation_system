@@ -27,7 +27,8 @@ class Database():
     Example usage:
     db = Database.instance()
     """
-    engine = db.create_engine(os.environ["DATABASE_URL"])
+    engine = db.create_engine(
+        os.environ["DATABASE_URL"], pool_size=20, max_overflow=0)
     db_instance = None
 
     def __init__(self):
