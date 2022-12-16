@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import json
-from utils.Utils import print_movie_tiles
+from utils import print_movie_tiles
 import os
 import pandas as pd
 

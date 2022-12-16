@@ -28,7 +28,7 @@ class Database():
     db = Database.instance()
     """
     engine = db.create_engine(
-        os.environ["DATABASE_URL"], pool_size=20, max_overflow=0)
+        os.environ["DATABASE_URL"], pool_size=200, max_overflow=0)
     db_instance = None
 
     def __init__(self):
@@ -115,17 +115,21 @@ class Database():
         Prediction
             The Prediction stored in the database.
         """
-        session = Session(bind=self.engine.connect())
-        prediction = Prediction(movie_id=movie_id)
-        session.add(prediction)
-        session.commit()
-        for (predicted_movie_id, score) in predictions:
-            if isnan(score):
-                score = 0
-            pred_value = PredictionValue(
-                movie_id=predicted_movie_id, score=score, prediction_id=prediction.id)
-            session.add(pred_value)
-        session.commit()
+        connection = self.engine.connect()
+        try:
+            session = Session(bind=self.engine.connect())
+            prediction = Prediction(movie_id=movie_id)
+            session.add(prediction)
+            session.commit()
+            for (predicted_movie_id, score) in predictions:
+                if isnan(score):
+                    score = 0
+                pred_value = PredictionValue(
+                    movie_id=predicted_movie_id, score=score, prediction_id=prediction.id)
+                session.add(pred_value)
+            session.commit()
+        finally:
+            connection.invalidate()
         return self.fetch_predictions(prediction.id, number_of_movies=1)[0]
 
     @staticmethod

@@ -27,7 +27,7 @@ context = gx.get_context()
     dag_id='injestion_job',
     description='Ingest data from a file',
     tags=['get_data', 'injest_data'],
-    schedule=timedelta(minutes=5),
+    schedule=timedelta(minutes=1),
     catchup=False,
     start_date=days_ago(n=0, hour=0)
 )
