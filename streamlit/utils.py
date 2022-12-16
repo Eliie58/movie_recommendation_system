@@ -1,6 +1,8 @@
+# pylint: disable=E1101
 """This module is for utility functions used in the streamlit web app."""
 import json
 import logging
+from requests.exceptions import Timeout, TooManyRedirects, HTTPError, RequestException
 
 import requests
 import streamlit as st
@@ -19,8 +21,7 @@ def get_movie_image(movie):
     movie_details = json.loads(requests.get(url, timeout=10).text)
     if 'Poster' in movie_details:
         return movie_details['Poster']
-    else:
-        return DEFAULT_IMAGE
+    return DEFAULT_IMAGE
 
 
 def get_movie_genres(movie):
@@ -39,29 +40,25 @@ def print_movie_tiles(movies, callback=None, columns=4, history=True):
             cols = st.columns(columns)
         with cols[index % columns]:
             try:
-                container = st.container()
-                if callback:
-                    button = container.button(
-                        'Get Similar Movies', key=movie['id'])
-                container.write(f'#### {movie["title"]}')
-                container.write(f'##### {movie["year"]}')
-                container.image(get_movie_image(movie))
-                if 'score' in movie:
-                    container.write(f'#### {int(movie["score"] * 100)} %')
-                else:
-                    container.write('')
-                container.write('##### Genres')
-                container.write(get_movie_genres(movie))
-            except Exception:
-                container = st.container()
-                if callback:
-                    button = container.button(
-                        'Get Similar Movies', key=movie['id'])
-                container.write(f'#### {movie["title"]}')
-                container.write(f'##### {movie["year"]}')
-                container.image(DEFAULT_IMAGE)
-                container.write('##### Genres')
-                container.write(get_movie_genres(movie))
+                movie_image = get_movie_image(movie)
+            except (Timeout, TooManyRedirects, ConnectionError, RequestException, HTTPError) as ex:
+                logging.error(ex)
+                movie_image = DEFAULT_IMAGE
+
+            container = st.container()
+            if callback:
+                button = container.button(
+                    'Get Similar Movies', key=movie['id'])
+            container.write(f'#### {movie["title"]}')
+            container.write(f'##### {movie["year"]}')
+            container.image(movie_image)
+            if 'score' in movie:
+                container.write(f'#### {int(movie["score"] * 100)} %')
+            else:
+                container.write('')
+            container.write('##### Genres')
+            container.write(get_movie_genres(movie))
+
         if button:
             callback(movie['id'])
         if index > 20:

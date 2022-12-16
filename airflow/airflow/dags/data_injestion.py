@@ -10,9 +10,9 @@ from typing import List
 import os
 import shutil
 
+import great_expectations as gx
 from airflow.decorators import dag, task
 from airflow.utils.dates import days_ago
-import great_expectations as gx
 
 logging.basicConfig(level=logging.INFO)
 
