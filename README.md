@@ -11,6 +11,26 @@ This system contains 6 main services:
 - Web Interface [Streamlit]("https://streamlit.io/")
 - Prediction model [surpriselib]("https://surpriselib.com/")
 - Job scheduling [Apache Airflow](https://airflow.apache.org/)
+- Monitoring Dashboard [Grafana](https://grafana.com/)
+
+## System Design
+
+Ever felt not sure regarding which movie to watch next?<br>
+This project aims to solve this problem.<br>
+
+- The streamlit frontend shows the users movies, that can be filtered by genre and movie name. The user will pick a movie, and request others similar to it.
+- The frontend will send http request to the fastapi backend, with the movie id. In the backend, we will use a pretrained model for inference. The predicted information will be stored in the database, and the user will be directed to a page to see the prediction results.
+- We have a grafana dashboard, for monitoring system performances as well.
+- The frontend also supports Batch predictions, where users can upload a file with a list of movie ids.
+
+The system also supports B2B batch predictions, where business will upload their batch predictions to a shared folder, and we will output the predictions to a different folder.
+
+- Job scheduling. We have 3 scheduled jobs:
+  1. B2B Simulation: We simulate the B2B requests with randomly generated request files.
+  2. Data Ingestion: We validate the input files using [great expectations](https://greatexpectations.io/), and move the valid files to the Prediction folder.
+  3. Prediction Job: Read all files in the prediction job, and for each, call api batch prediction endpoint, and write the result to output folder.
+
+![System Design](System%20Design.svg)
 
 ## Run
 
@@ -133,15 +153,6 @@ Steps for training and using the prediction model are in the model [README.MD](m
 
 #### Job Scheduling
 
-In order to automate the job scheduling we are using airflow.
-We have 2 scheduled jobs:
-
-- Data Ingestion:<br>
-  Copy B2B incoming files from b2b-input folder, to prediction-pipeline folder.
-- Batch Prediction:<br>
-  Use [great expectations](https://greatexpectations.io/) to validate b2b data quality, and discard any invalid inputs, after sending notifications.<br>
-  Calling the batch prediction api endpoint to get the prediction, and output the results under b2b-output folder
-
 To run the job scheduler, follow these steps:
 
 - Download the code
@@ -165,6 +176,16 @@ pip install -r requirements.txt
 export API_URL=http://localhost:8080
 ```
 
+- Create the data folders
+
+```
+mkdir data/b2b_input
+mkdir data/validation_input
+mkdir data/prediction_input
+mkdir data/rejected
+mkdir data/output
+```
+
 - Start the scheduler
 
 ```
@@ -172,6 +193,13 @@ export API_URL=http://localhost:8080
 ```
 
 - To view the airflow web interface, you can go to `http://localhost:9091`
+
+#### Grafana
+
+Follow the steps to setup grafana from the official sources `https://grafana.com/docs/grafana/latest/setup-grafana/installation/`.<br>
+After installing and running the local grafana instance, create a new postgres datasource, and dashboards to visualize sysem performance.
+Example dashboard:
+![Example dashboard](Example_dashboard.png)
 
 ### Useful command
 

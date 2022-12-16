@@ -13,7 +13,6 @@ export VALIDATION_FOLDER=data/validation_input
 export PREDICTION_FOLDER=data/prediction_input
 export REJECT_FOLDER=data/rejected
 export OUTPUT_FOLDER=data/output
-export API_URL=http://api:80
 
 airflow db init
 airflow users create \
